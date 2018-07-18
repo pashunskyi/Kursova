@@ -3,10 +3,11 @@
 #include<conio.h>
 #include<Windows.h>
 #include <string>
-#include<deque>
+#include<vector>
 #include"Seat.h"
 #include"Array.h"
 #include<istream>
+#include<fstream>
 using namespace std;
 
 void SetColor(int col)
@@ -16,21 +17,24 @@ void SetColor(int col)
 
 int Menu();
 void ShowMenu(int);
-int Films(int, deque<Array>);
-void ShowFilms(int, int, deque<Array>);
-int Zal(deque<Array> , int);
-void ShowZal(int, deque<Array>, int);
+int Films(int, vector<Array>);
+void ShowFilms(int, int, vector<Array>);
+int Zal(vector<Array>, int);
+void ShowZal(int, vector<Array>, int);
 int Misze();
 void ShowMisze(int);
 int Seans();
 void ShowSeans(int);
+void ToFile(Array);
+void FromFile();
 void main()
 {
+	system("mode 120, 25");
 	SetConsoleCP(1251);
 	SetConsoleOutputCP(1251);
-	deque<Array> list;
+	vector<Array> list;
 	int size = 0;
-	
+
 	int menu;
 	while (true)
 	{
@@ -41,8 +45,8 @@ void main()
 			string buff;
 			getline(cin, buff);
 			list.push_back(Array());
-			list[size -1].Setname(buff);
-			
+			list[size - 1].Setname(buff);
+
 		}
 		if (menu == 1)
 		{
@@ -85,41 +89,66 @@ void main()
 				}
 				else
 				{
-					//зберегти у файл
+					ToFile(list[film]);
+					list.erase(list.begin() + film);
+					size--;
 				}
 			}
 		}
 		if (menu == 2)
 		{
-			
+			FromFile();
 		}
 		if (menu == 3)
-		{
-			
-		}
-		if (menu == 4)
-		{
-			
-		}
-		if (menu == 5)
 		{
 			return;
 		}
 	}
-	
-	
+
+
 	system("pause");
 }
-
+void FromFile()
+{
+	system("cls");
+	char buff[255];
+	ifstream in("історія.txt");
+	while (!in.eof())
+	{
+		in.getline(buff, 255, '+');
+		if (in.eof()){break;}
+		cout << "Назав: " << buff << endl;
+		in.getline(buff, 255, ';');
+		cout << "Збори: " << buff << endl;
+		cout << endl;
+	}
+	in.close();
+	system("pause");
+}
+void ToFile(Array a)
+{
+	int p = 0;
+	for (int i = 0; i < 500; i++)
+	{
+		p += a.GetPlata(i);
+	}
+	ofstream out("історія.txt", ios_base::app);
+	out << a.Getname();
+	out << "+";
+	out << p;
+	out << ";";
+	out.close();
+}
 void ShowSeans(int ch)
 {
+	system("cls");
 	if (ch == 0)
 	{
 		SetColor(11);
 		cout << "Редагувати" << endl;
 		SetColor(7);
 		cout << "Завершити сеанс" << endl;
-		
+
 	}
 	if (ch == 1)
 	{
@@ -132,7 +161,7 @@ void ShowSeans(int ch)
 int Seans()
 {
 	int choice = 0;
-	ShowMisze(choice);
+	ShowSeans(choice);
 	while (true)
 	{
 		switch (_getch())
@@ -141,13 +170,13 @@ int Seans()
 		{
 			switch (_getch())
 			{
-			case 80:
-				choice < 2 ? choice++ : choice = 0; // >
-				ShowMisze(choice);
-				break;
 			case 72:
-				choice > 0 ? choice-- : choice = 2; // <
-				ShowMisze(choice);
+				choice < 1 ? choice++ : choice = 0;
+				ShowSeans(choice);
+				break;
+			case 80:
+				choice > 0 ? choice-- : choice = 1;
+				ShowSeans(choice);
 				break;
 			}
 			break;
@@ -221,9 +250,10 @@ int Misze()
 	}
 }
 
-void ShowZal(int ch, deque<Array> list, int film)
+void ShowZal(int ch, vector<Array> list, int film)
 {
 	system("cls");
+	int money = 0;
 	SetColor(11);
 	cout << char(111) << " - вказівник  ";
 	SetColor(7);
@@ -242,7 +272,8 @@ void ShowZal(int ch, deque<Array> list, int film)
 	cout << "\t";
 	for (int i = 0; i < 500; i++)
 	{
-		if (i%50 == 0 && i != 0)
+		money += list[film].GetPlata(i);
+		if (i % 50 == 0 && i != 0)
 		{
 			cout << endl;
 			cout << endl;
@@ -261,8 +292,13 @@ void ShowZal(int ch, deque<Array> list, int film)
 			SetColor(7);
 		}
 	}
+	cout << endl;
+	cout << endl;
+	SetColor(11);
+	cout << "Збори - " << money << endl;
+	SetColor(7);
 }
-int Zal(deque<Array> list, int film)
+int Zal(vector<Array> list, int film)
 {
 	int choice = 0;
 	ShowZal(choice, list, film);
@@ -301,14 +337,14 @@ int Zal(deque<Array> list, int film)
 	}
 }
 
-void ShowFilms(int ch, int size, deque<Array> list)
+void ShowFilms(int ch, int size, vector<Array> list)
 {
 	system("cls");
 	for (int i = 0; i < size; i++)
 	{
 		if (ch == i)
 		{
-			SetColor(4);
+			SetColor(11);
 			cout << list[i].Getname() << endl;
 			SetColor(7);
 		}
@@ -329,7 +365,7 @@ void ShowFilms(int ch, int size, deque<Array> list)
 	}
 }
 
-int Films(int size, deque<Array> list)
+int Films(int size, vector<Array> list)
 {
 	int choice = 0;
 	ShowFilms(choice, size, list);
@@ -365,7 +401,7 @@ void ShowMenu(int ch)
 	system("cls");
 	if (ch == 0)
 	{
-		SetColor(4);
+		SetColor(11);
 		cout << "Добавити сеанс" << endl;
 		SetColor(7);
 	}
@@ -375,7 +411,7 @@ void ShowMenu(int ch)
 	}
 	if (ch == 1)
 	{
-		SetColor(4);
+		SetColor(11);
 		cout << "Показати сеанси" << endl;
 		SetColor(7);
 	}
@@ -385,43 +421,23 @@ void ShowMenu(int ch)
 	}
 	if (ch == 2)
 	{
-		SetColor(4);
-		cout << "Edit student" << endl;
+		SetColor(11);
+		cout << "Історія" << endl;
 		SetColor(7);
 	}
 	else
 	{
-		cout << "Edit student" << endl;
+		cout << "Історія" << endl;
 	}
 	if (ch == 3)
 	{
 		SetColor(4);
-		cout << "Delete student" << endl;
+		cout << "Вихід" << endl;
 		SetColor(7);
 	}
 	else
 	{
-		cout << "Delete student" << endl;
-	}
-	if (ch == 4)
-	{
-		SetColor(4);
-		cout << "Find student" << endl;
-		SetColor(7);
-	}
-	else
-	{
-		cout << "Find student" << endl;
-	}
-	if (ch == 5)
-	{
-		SetColor(4);
-		cout << "Exit" << endl;
-		SetColor(7);
-	}
-	else
-	{
-		cout << "Exit" << endl;
+		cout << "Вихід" << endl;
 	}
 }
 
@@ -438,11 +454,11 @@ int Menu()
 			switch (_getch())
 			{
 			case 80:
-				choice < 5 ? choice++ : choice = 0;
+				choice < 3 ? choice++ : choice = 0;
 				ShowMenu(choice);
 				break;
 			case 72:
-				choice >0 ? choice-- : choice = 5;
+				choice >0 ? choice-- : choice = 3;
 				ShowMenu(choice);
 				break;
 			}
